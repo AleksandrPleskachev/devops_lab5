@@ -1,1 +1,1 @@
-Среда: Linux
+Среда: Linux и Git
