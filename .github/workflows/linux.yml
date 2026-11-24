@@ -1,0 +1,38 @@
+name: Lab 5 on Linux
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Import the existing lab commits
+        run: |
+          if test -f devops-lab5-transfer.bundle; then
+            git bundle verify devops-lab5-transfer.bundle
+            git fetch ./devops-lab5-transfer.bundle 'refs/heads/*:refs/lab/*'
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git merge --allow-unrelated-histories --no-commit refs/lab/publish/lab5
+            git rm devops-lab5-transfer.bundle
+            git commit -m 'Import local DevOps lab history'
+          fi
+      - name: Run Linux lab
+        run: bash linux/run-linux.sh
+      - name: Push main and the exercise branches
+        run: |
+          if git show-ref --verify --quiet refs/lab/publish/lab5; then
+            git push --atomic origin HEAD:refs/heads/main \
+              refs/lab/feature/commands:refs/heads/feature/commands \
+              refs/lab/conflict/linux:refs/heads/conflict/linux \
+              refs/lab/conflict/git:refs/heads/conflict/git
+          fi
+          git log --oneline --graph -15
